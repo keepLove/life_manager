@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:life_manager/model/life_time.dart';
 import 'package:life_manager/utils/life_bean_sp_util.dart';
 
-/// 添加纪念日
+/// 添加或编辑纪念日
 class AddDayScreen extends StatefulWidget {
-  final String title = "Add Day Of Commemoration";
+  final String title = "纪念日";
+  final LifeTimeBean editLifeTimeBean;
+
+  AddDayScreen({Key key, this.editLifeTimeBean}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -13,9 +16,10 @@ class AddDayScreen extends StatefulWidget {
 }
 
 class _AddDayState extends State<AddDayScreen> {
-  DateTime _dateTime = DateTime.now();
+  DateTime _dateTime;
   String _commemorationTitle;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final TextEditingController _controller = new TextEditingController();
 
   final TextStyle _textStyle = TextStyle(
     fontSize: 16.0,
@@ -27,6 +31,19 @@ class _AddDayState extends State<AddDayScreen> {
     style: BorderStyle.solid,
     color: Colors.grey,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.editLifeTimeBean != null) {
+      _controller.text = widget.editLifeTimeBean.title;
+      _commemorationTitle = _controller.text;
+      _dateTime = DateTime.fromMillisecondsSinceEpoch(
+          widget.editLifeTimeBean.millisecondsSinceEpoch);
+    } else {
+      _dateTime = DateTime.now();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +63,7 @@ class _AddDayState extends State<AddDayScreen> {
               margin: EdgeInsets.only(top: 10.0, bottom: 20.0),
               decoration: BoxDecoration(border: _border),
               child: TextField(
+                controller: _controller,
                 onChanged: (message) {
                   _commemorationTitle = message;
                 },
@@ -103,7 +121,7 @@ class _AddDayState extends State<AddDayScreen> {
   void _selectDay() {
     showDatePicker(
             context: context,
-            initialDate: DateTime.now(),
+        initialDate: _dateTime,
             firstDate: DateTime(1900),
             lastDate: DateTime.now())
         .then((date) {
@@ -124,8 +142,18 @@ class _AddDayState extends State<AddDayScreen> {
           .showSnackBar(SnackBar(content: Text("请描述你的纪念日")));
       return;
     }
-    LifeBeanUtil.saveLifeTime(
-        LifeTimeBean(0, _dateTime.millisecondsSinceEpoch, _commemorationTitle));
+    if (widget.editLifeTimeBean == null) {
+      LifeTimeBean lifeTimeBean = LifeTimeBean(
+          type: 0,
+          millisecondsSinceEpoch: _dateTime.millisecondsSinceEpoch,
+          title: _commemorationTitle);
+      LifeBeanUtil.addLifeTime(lifeTimeBean);
+    } else {
+      widget.editLifeTimeBean.millisecondsSinceEpoch =
+          _dateTime.millisecondsSinceEpoch;
+      widget.editLifeTimeBean.title = _commemorationTitle;
+      LifeBeanUtil.editLifeTimeBean(widget.editLifeTimeBean);
+    }
     _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text("成功")));
     // 1成功
     Navigator.of(context).pop(1);

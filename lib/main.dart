@@ -34,15 +34,20 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         actions: <Widget>[
           PopupMenuButton<String>(
+              padding: EdgeInsets.zero,
               itemBuilder: (BuildContext context) =>
-              <PopupMenuItem<String>>[
-                PopupMenuItem<String>(
-                    value: "screen.commemoration",
-                    child: Text('Day Of Commemoration')),
+              <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                    value: "commemoration",
+                    child: ListTile(
+                      leading: Icon(Icons.favorite_border),
+                      title: Text("纪念日"),
+                    )),
+//                    const PopupMenuDivider(),
               ],
               onSelected: (String action) {
                 switch (action) {
-                  case "screen.commemoration":
+                  case "commemoration":
                     Navigator.push(
                       context,
                       new MaterialPageRoute(
