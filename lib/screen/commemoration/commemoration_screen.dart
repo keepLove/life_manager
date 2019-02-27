@@ -55,7 +55,7 @@ class _CommemorationWidgetState extends State<CommemorationScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addDay,
-        tooltip: 'Increment',
+        tooltip: 'Add',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
@@ -137,7 +137,7 @@ class CommemorationItemWidget extends StatelessWidget {
               Container(
                 margin: EdgeInsets.symmetric(vertical: 10.0),
                 child: Text(
-                  "今天是第${diffTime.inDays + 1}天",
+                  "今天是纪念日的第${diffTime.inDays + 1}天",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16.0,
@@ -181,7 +181,7 @@ class CommemorationItemWidget extends StatelessWidget {
   /// 编辑
   void _editLifeTimeBean(BuildContext context) async {
     final result =
-    await Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+        await Navigator.of(context).push(MaterialPageRoute(builder: (context) {
       return AddDayScreen(
         editLifeTimeBean: timeBean,
       );

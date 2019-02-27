@@ -34,17 +34,15 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         actions: <Widget>[
           PopupMenuButton<String>(
-              padding: EdgeInsets.zero,
-              itemBuilder: (BuildContext context) =>
-              <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                    value: "commemoration",
-                    child: ListTile(
-                      leading: Icon(Icons.favorite_border),
-                      title: Text("纪念日"),
-                    )),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                        value: "commemoration",
+                        child: ListTile(
+                          leading: Icon(Icons.favorite_border),
+                          title: Text("纪念日"),
+                        )),
 //                    const PopupMenuDivider(),
-              ],
+                  ],
               onSelected: (String action) {
                 switch (action) {
                   case "commemoration":
