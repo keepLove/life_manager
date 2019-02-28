@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
 
-import 'package:life_manager/screen/commemoration/commemoration_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart';
 import 'package:flutter_calendar_carousel/classes/event.dart';
 import 'package:flutter_calendar_carousel/classes/event_list.dart';
+
+import 'package:life_manager/screen/commemoration/commemoration_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -31,10 +33,19 @@ class _MyHomePageState extends State<MyHomePage> {
   DateTime _currentDate = DateTime.now();
   EventList<Event> _markedDateMap = EventList();
   bool _isToday = true;
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  double _statusBarHeight = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _statusBarHeight = MediaQueryData.fromWindow(window).padding.top;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(_title),
         actions: <Widget>[
@@ -123,6 +134,59 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         ),
       ),
+      drawer: Drawer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Container(
+              height: _statusBarHeight,
+              color: Colors.blue,
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 10.0),
+              child: ListTile(
+                leading: Icon(Icons.calendar_view_day),
+                title: Text(
+                  "跳转到指定日期",
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
+                onTap: () {
+                  _scaffoldKey.currentState.openEndDrawer();
+                  _jumpDateTime();
+                },
+              ),
+            ),
+            Divider(
+              height: 1.0,
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  void _jumpDateTime() async {
+    showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(DateTime.now().year - 100),
+            lastDate: DateTime(DateTime.now().year + 100))
+        .then((date) {
+      if (date != null) {
+        setState(() {
+          _currentDate = date;
+          _isToday = DateTime.now().year == date.year &&
+              DateTime.now().month == date.month &&
+              DateTime.now().day == date.day;
+          _title = "${_currentDate.year}年${_currentDate.month}月";
+        });
+      }
+    }, onError: (error) {
+      print(error);
+      _scaffoldKey.currentState
+          .showSnackBar(new SnackBar(content: new Text('选择错误')));
+    });
   }
 }
