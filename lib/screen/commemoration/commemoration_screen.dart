@@ -23,7 +23,7 @@ class _CommemorationWidgetState extends State<CommemorationScreen> {
 
   /// 初始化时间列表
   void _initLifeTime() async {
-    LifeBeanUtil.getAllLifeTime().then((list) {
+    LifeBeanUtil.getCommemorationData().then((list) {
       setState(() {
         _listTime.clear();
         _listTime.addAll(list);

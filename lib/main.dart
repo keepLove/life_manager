@@ -46,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _getMarkedDate();
   }
 
+  /// 获取标记数据
   void _getMarkedDate() {
     LifeBeanUtil.getAllLifeTime().then((list) {
       EventList<LifeTimeBean> eventList = EventList();
@@ -81,95 +82,28 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
               }),
           PopupMenuButton<String>(
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                        value: "commemoration",
-                        child: ListTile(
-                          leading: Icon(Icons.favorite_border),
-                          title: Text("纪念日"),
-                        )),
-//                    const PopupMenuDivider(),
-                  ],
-              onSelected: (String action) {
-                switch (action) {
-                  case "commemoration":
-                    Navigator.push(
-                      context,
-                      new MaterialPageRoute(
-                          builder: (context) => new CommemorationScreen()),
-                    );
-                    break;
-                }
-              }),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                      value: "commemoration",
+                      child: ListTile(
+                        leading: Icon(Icons.favorite_border),
+                        title: Text("纪念日"),
+                      )),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                      value: "schedule",
+                      child: ListTile(
+                        leading: Icon(Icons.loyalty),
+                        title: Text("备忘日程"),
+                      )),
+                ],
+            onSelected: _popupMenuSelect,
+          ),
         ],
       ),
       body: Column(
         children: <Widget>[
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 10.0),
-            child: CalendarCarousel<LifeTimeBean>(
-              locale: "zh",
-              // 显示边框
-              daysHaveCircularBorder: true,
-              // 选中的边框颜色
-              selectedDayBorderColor: Colors.transparent,
-              // 选中的按钮颜色
-              selectedDayButtonColor: _isToday ? Colors.red : Colors.blue[300],
-              // 当前的颜色
-              todayBorderColor: Colors.red,
-              todayButtonColor: Colors.transparent,
-              todayTextStyle: TextStyle(
-                fontSize: 14.0,
-                color: _isToday ? Colors.white : Colors.red,
-              ),
-              // 星期左右日期样式
-              weekendTextStyle: TextStyle(
-                color: Colors.black38,
-                fontSize: 14.0,
-              ),
-              // 星期上方的样式
-              weekdayTextStyle: TextStyle(
-                color: Colors.black,
-                fontSize: 14.0,
-              ),
-              weekDayFormat: WeekdayFormat.narrow,
-              weekDayMargin: EdgeInsets.only(top: 20.0),
-              minSelectedDate: DateTime(1960),
-              maxSelectedDate: DateTime(2050),
-              // 不显示头部widget
-              showHeader: false,
-              // 标记位
-              markedDatesMap: _markedDateMap,
-              markedDateIconBuilder: (bean) {
-                return Container(
-                  margin: EdgeInsets.symmetric(horizontal: 1.0),
-                  height: 6.0,
-                  width: 6.0,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.blue,
-                  ),
-                );
-              },
-              height: 300.0,
-              // 选中的日期
-              selectedDateTime: _currentDate,
-              onDayPressed: (DateTime date, List<LifeTimeBean> list) {
-                print(date.toString());
-                print(list.toString());
-                this.setState(() {
-                  _currentDate = date;
-                  _currentLifeTimeBean = list;
-                  _isToday = _dateTimeEqual(DateTime.now(), date);
-                });
-              },
-              onCalendarChanged: (dateTime) {
-                setState(() {
-                  _title = "${dateTime.year}年${dateTime.month}月";
-                });
-              },
-            ),
-          ),
+          _getCalendar(),
           Container(
             color: Colors.grey[200],
             width: double.infinity,
@@ -185,86 +119,182 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Expanded(
-            child: (_currentLifeTimeBean == null ||
-                    _currentLifeTimeBean.isEmpty)
-                ? Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    child: Center(
-                      child: Text(
-                        "没有日程",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: _currentLifeTimeBean.length,
-                    itemBuilder: (context, index) {
-                      LifeTimeBean lifeTimeBean = _currentLifeTimeBean[index];
-                      if (lifeTimeBean.type == 0) {
-                        return Column(
-                          children: <Widget>[
-                            Container(
-                              padding: EdgeInsets.symmetric(vertical: 16.0),
-                              child: Row(
-                                children: <Widget>[
-                                  Container(
-                                    width: 8.0,
-                                    height: 8.0,
-                                    margin: EdgeInsets.only(right: 20.0),
-                                    decoration: BoxDecoration(
-                                        color: Colors.blue,
-                                        shape: BoxShape.circle),
-                                  ),
-                                  Text(
-                                    "${lifeTimeBean.title}纪念日",
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Divider(),
-                          ],
-                        );
-                      }
-                      return Container();
-                    },
-                    padding: EdgeInsets.symmetric(horizontal: 20.0),
-                  ),
+            child:
+                (_currentLifeTimeBean == null || _currentLifeTimeBean.isEmpty)
+                    ? Container(
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: Center(
+                          child: Text(
+                            "没有日程",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      )
+                    : _getSchedule(),
           ),
         ],
       ),
-      drawer: Drawer(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Container(
-              height: _statusBarHeight,
+      drawer: _getDrawer(),
+    );
+  }
+
+  /// getSchedule
+  Widget _getSchedule() {
+    return ListView.builder(
+      itemCount: _currentLifeTimeBean.length,
+      itemBuilder: (context, index) {
+        LifeTimeBean lifeTimeBean = _currentLifeTimeBean[index];
+        if (lifeTimeBean.type == 0) {
+          return Column(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                      width: 8.0,
+                      height: 8.0,
+                      margin: EdgeInsets.only(right: 20.0),
+                      decoration: BoxDecoration(
+                          color: Colors.blue, shape: BoxShape.circle),
+                    ),
+                    Text(
+                      "${lifeTimeBean.title}纪念日",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(),
+            ],
+          );
+        }
+        return Container();
+      },
+      padding: EdgeInsets.symmetric(horizontal: 20.0),
+    );
+  }
+
+  /// getCalendar
+  Widget _getCalendar() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 10.0),
+      child: CalendarCarousel<LifeTimeBean>(
+        locale: "zh",
+        // 显示边框
+        daysHaveCircularBorder: true,
+        // 选中的边框颜色
+        selectedDayBorderColor: Colors.transparent,
+        // 选中的按钮颜色
+        selectedDayButtonColor: _isToday ? Colors.red : Colors.blue[300],
+        // 当前的颜色
+        todayBorderColor: Colors.red,
+        todayButtonColor: Colors.transparent,
+        todayTextStyle: TextStyle(
+          fontSize: 14.0,
+          color: _isToday ? Colors.white : Colors.red,
+        ),
+        // 星期左右日期样式
+        weekendTextStyle: TextStyle(
+          color: Colors.black38,
+          fontSize: 14.0,
+        ),
+        // 星期上方的样式
+        weekdayTextStyle: TextStyle(
+          color: Colors.black,
+          fontSize: 14.0,
+        ),
+        weekDayFormat: WeekdayFormat.narrow,
+        weekDayMargin: EdgeInsets.only(top: 20.0),
+        minSelectedDate: DateTime(1960),
+        maxSelectedDate: DateTime(2050),
+        // 不显示头部widget
+        showHeader: false,
+        // 标记位
+        markedDatesMap: _markedDateMap,
+        markedDateIconBuilder: (bean) {
+          return Container(
+            margin: EdgeInsets.symmetric(horizontal: 1.0),
+            height: 6.0,
+            width: 6.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
               color: Colors.blue,
             ),
-            Container(
-              margin: EdgeInsets.only(top: 10.0),
-              child: ListTile(
-                leading: Icon(Icons.calendar_view_day),
-                title: Text(
-                  "跳转到指定日期",
-                  style: TextStyle(
-                    color: Colors.black,
-                  ),
-                ),
-                onTap: () {
-                  _scaffoldKey.currentState.openEndDrawer();
-                  _jumpDateTime();
-                },
-              ),
-            ),
-            Divider(
-              height: 1.0,
-            ),
-          ],
-        ),
+          );
+        },
+        staticSixWeekFormat: true,
+        height: 340.0,
+        // 选中的日期
+        selectedDateTime: _currentDate,
+        onDayPressed: (DateTime date, List<LifeTimeBean> list) {
+          print(date.toString());
+          print(list.toString());
+          this.setState(() {
+            _currentDate = date;
+            _currentLifeTimeBean = list;
+            _isToday = _dateTimeEqual(DateTime.now(), date);
+          });
+        },
+        onCalendarChanged: (dateTime) {
+          setState(() {
+            _title = "${dateTime.year}年${dateTime.month}月";
+          });
+        },
       ),
     );
+  }
+
+  /// getDrawer
+  Widget _getDrawer() {
+    return Drawer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Container(
+            height: _statusBarHeight,
+            color: Colors.blue,
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 10.0),
+            child: ListTile(
+              leading: Icon(Icons.calendar_view_day),
+              title: Text(
+                "跳转到指定日期",
+                style: TextStyle(
+                  color: Colors.black,
+                ),
+              ),
+              onTap: () {
+                _scaffoldKey.currentState.openEndDrawer();
+                _jumpDateTime();
+              },
+            ),
+          ),
+          Divider(
+            height: 1.0,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// popupMenu选中事件
+  void _popupMenuSelect(String action) async {
+    switch (action) {
+      case "commemoration":
+        final result = await Navigator.push(
+          context,
+          new MaterialPageRoute(
+              builder: (context) => new CommemorationScreen()),
+        );
+        print("navigator commemorate：$result");
+        _getMarkedDate();
+        break;
+      case "schedule":
+        break;
+    }
   }
 
   /// 距离当前多少天

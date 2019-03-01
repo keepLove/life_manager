@@ -147,7 +147,7 @@ class _AddDayState extends State<AddDayScreen> {
     }
     if (widget.editLifeTimeBean == null) {
       LifeTimeBean lifeTimeBean = LifeTimeBean(
-          type: 0,
+          type: LifeTimeBeanType.commemoration_type,
           millisecondsSinceEpoch: _dateTime.millisecondsSinceEpoch,
           title: _commemorationTitle);
       LifeBeanUtil.addLifeTime(lifeTimeBean);
