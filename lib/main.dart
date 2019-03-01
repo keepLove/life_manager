@@ -51,9 +51,11 @@ class _MyHomePageState extends State<MyHomePage> {
     LifeBeanUtil.getAllLifeTime().then((list) {
       EventList<LifeTimeBean> eventList = EventList();
       list.forEach((bean) {
+        DateTime dateTime =
+            DateTime.fromMillisecondsSinceEpoch(bean.millisecondsSinceEpoch);
+        // 重置时分秒
         eventList.add(
-            DateTime.fromMillisecondsSinceEpoch(bean.millisecondsSinceEpoch),
-            bean);
+            DateTime(dateTime.year, dateTime.month, dateTime.day), bean);
       });
       setState(() {
         _markedDateMap = eventList;
@@ -213,14 +215,29 @@ class _MyHomePageState extends State<MyHomePage> {
         showHeader: false,
         // 标记位
         markedDatesMap: _markedDateMap,
+        markedDateShowIcon: true,
+        markedDateIconMaxShown: 1,
+        markedDateIconMargin: 0.0,
+        markedDateIconOffset: 0.0,
         markedDateIconBuilder: (bean) {
           return Container(
-            margin: EdgeInsets.symmetric(horizontal: 1.0),
-            height: 6.0,
-            width: 6.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.blue,
+            height: double.infinity,
+            padding: EdgeInsets.only(bottom: 4.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 1.0),
+                  height: 5.0,
+                  width: 5.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.blue,
+                  ),
+                ),
+              ],
             ),
           );
         },
