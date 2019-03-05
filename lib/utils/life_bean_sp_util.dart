@@ -37,6 +37,19 @@ class LifeBeanUtil {
     return lifeTimeList;
   }
 
+  /// 获取备忘录数据
+  static Future<List<LifeTimeBean>> getMemoData() async {
+    List<LifeTimeBean> lifeTimeList = <LifeTimeBean>[];
+    getAllLifeTime().then((list) {
+      for (var value in list) {
+        if (value.type == LifeTimeBeanType.memo_type) {
+          lifeTimeList.add(value);
+        }
+      }
+    });
+    return lifeTimeList;
+  }
+
   /// 保存
   static void save(List<LifeTimeBean> listTime) async {
     // 按时间排序

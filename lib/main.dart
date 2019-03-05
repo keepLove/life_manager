@@ -8,6 +8,7 @@ import 'package:flutter_calendar_carousel/classes/event_list.dart';
 import 'package:life_manager/screen/commemoration/commemoration_screen.dart';
 import 'package:life_manager/model/life_time.dart';
 import 'package:life_manager/utils/life_bean_sp_util.dart';
+import 'package:life_manager/screen/memo/memo_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -59,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
       });
       setState(() {
         _markedDateMap = eventList;
+        _currentLifeTimeBean = eventList.getEvents(_currentDate);
       });
     });
   }
@@ -147,34 +149,73 @@ class _MyHomePageState extends State<MyHomePage> {
       itemCount: _currentLifeTimeBean.length,
       itemBuilder: (context, index) {
         LifeTimeBean lifeTimeBean = _currentLifeTimeBean[index];
-        if (lifeTimeBean.type == 0) {
-          return Column(
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Row(
-                  children: <Widget>[
-                    Container(
-                      width: 8.0,
-                      height: 8.0,
-                      margin: EdgeInsets.only(right: 20.0),
-                      decoration: BoxDecoration(
-                          color: Colors.blue, shape: BoxShape.circle),
-                    ),
-                    Text(
-                      "${lifeTimeBean.title}纪念日",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(),
-            ],
-          );
+        switch (lifeTimeBean.type) {
+          case LifeTimeBeanType.commemoration_type:
+            return _getCommemorationWidget(lifeTimeBean);
+            break;
+          case LifeTimeBeanType.memo_type:
+            return _getMemoWidget(lifeTimeBean);
+            break;
+          default:
+            return Container();
+            break;
         }
-        return Container();
       },
       padding: EdgeInsets.symmetric(horizontal: 20.0),
+    );
+  }
+
+  /// 获取备忘录widget
+  Widget _getMemoWidget(LifeTimeBean lifeTimeBean) {
+    return Column(
+      children: <Widget>[
+        Container(
+          padding: EdgeInsets.symmetric(vertical: 16.0),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 8.0,
+                height: 8.0,
+                margin: EdgeInsets.only(right: 20.0),
+                decoration:
+                    BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
+              ),
+              Text(
+                "${lifeTimeBean.detail}",
+                style: TextStyle(color: Colors.black),
+              ),
+            ],
+          ),
+        ),
+        Divider(),
+      ],
+    );
+  }
+
+  /// 获取纪念日widget
+  Widget _getCommemorationWidget(LifeTimeBean lifeTimeBean) {
+    return Column(
+      children: <Widget>[
+        Container(
+          padding: EdgeInsets.symmetric(vertical: 16.0),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 8.0,
+                height: 8.0,
+                margin: EdgeInsets.only(right: 20.0),
+                decoration:
+                    BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
+              ),
+              Text(
+                "${lifeTimeBean.title}纪念日",
+                style: TextStyle(color: Colors.black),
+              ),
+            ],
+          ),
+        ),
+        Divider(),
+      ],
     );
   }
 
@@ -310,6 +351,10 @@ class _MyHomePageState extends State<MyHomePage> {
         _getMarkedDate();
         break;
       case "schedule":
+        final result = await Navigator.push(
+            context, MaterialPageRoute(builder: (context) => MemoScreen()));
+        print("navigator memo screen: $result");
+        _getMarkedDate();
         break;
     }
   }
@@ -320,10 +365,11 @@ class _MyHomePageState extends State<MyHomePage> {
       return "今天  ${_currentDate.year}年${_currentDate.month}月${_currentDate.day}日";
     }
     Duration duration = _currentDate.difference(DateTime.now());
+    int day = duration.inDays.abs();
     if (duration.isNegative) {
-      return "${duration.inDays.abs()}天前  ${_currentDate.year}年${_currentDate.month}月${_currentDate.day}日";
+      return "${day == 1 ? "昨天" : day.toString() + "天前"}  ${_currentDate.year}年${_currentDate.month}月${_currentDate.day}日";
     }
-    return "${duration.inDays.abs()}天后  ${_currentDate.year}年${_currentDate.month}月${_currentDate.day}日";
+    return "${day == 0 ? "明天" : day.toString() + "天后"}  ${_currentDate.year}年${_currentDate.month}月${_currentDate.day}日";
   }
 
   /// 比较两个时间是否吻合

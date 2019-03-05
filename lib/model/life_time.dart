@@ -10,6 +10,7 @@ part 'life_time.g.dart';
 @JsonSerializable()
 class LifeTimeBean {
   /// 类型 0是纪念日，显示已过天数
+  /// 1是备忘录，显示今天信息
   int type;
 
   /// 时间戳
@@ -67,4 +68,7 @@ class LifeTimeBeanType {
 
   /// 纪念日类型
   static const int commemoration_type = 0;
+
+  /// 备忘录类型
+  static const int memo_type = 1;
 }
